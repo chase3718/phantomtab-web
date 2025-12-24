@@ -1,0 +1,49 @@
+#Score {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: calc(100vh - 48px);
+    max-width: 100vw;
+    max-height: calc(100vh - 48px);
+    padding: 32px;
+    overflow: scroll;
+
+
+
+    #Score__PartView {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        height: 100%;
+        margin-bottom: 32px;
+
+
+        .Score__PartView__part {
+            display: flex;
+            flex-direction: row;
+            width: max-content;
+            gap: 16px;
+            background: rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            padding: 8px;
+            pointer-events: all;
+
+            .Score__PartView__part-header {
+                font-weight: bold;
+                margin-bottom: 8px;
+            }
+
+            .Score__PartView__measures {
+                display: flex;
+                flex-direction: row;
+                gap: 0;
+
+                .Score__PartView__measure {
+                    .Score__PartView__measure__staff-lines {}
+                }
+            }
+        }
+    }
+}

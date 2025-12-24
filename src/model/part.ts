@@ -18,7 +18,6 @@ export default class Part {
 		const lastMeasure = this.measures[this.measures.length - 1];
 		lastMeasure.setNext(measure);
 		this.measures.push(measure);
-		console.log(`Added measure ${measure.id} to part ${this.id}`);
 	}
 
 	insertMeasureAt(index: number, measure: Measure = new Measure()): void {
@@ -39,7 +38,6 @@ export default class Part {
 		}
 		measure.setNext(currentMeasure);
 		this.measures.splice(index, 0, measure);
-		console.log(`Inserted measure ${measure.id} at index ${index} in part ${this.id}`);
 	}
 
 	removeLastMeasure(): Measure | undefined {
@@ -51,7 +49,6 @@ export default class Part {
 		if (newLastMeasure) {
 			newLastMeasure.setNext(null);
 		}
-		console.log(`Removed measure ${lastMeasure.id} from part ${this.id}`);
 		return lastMeasure;
 	}
 
@@ -69,7 +66,6 @@ export default class Part {
 			nextMeasure.setPrevious(previousMeasure);
 		}
 		this.measures.splice(index, 1);
-		console.log(`Removed measure ${measureToRemove.id} at index ${index} from part ${this.id}`);
 		return measureToRemove;
 	}
 

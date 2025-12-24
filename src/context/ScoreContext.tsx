@@ -38,12 +38,8 @@ export function ScoreProvider({ children }: { children: ReactNode }) {
 		setScoreVersion((v) => v + 1);
 	}, []);
 
-	const withPerf = useCallback(<T,>(label: string, fn: () => T): T => {
-		const start = performance.now();
-		const result = fn();
-		const duration = performance.now() - start;
-		console.log(`[perf] ${label} took ${duration.toFixed(2)}ms`);
-		return result;
+	const withPerf = useCallback(<T,>(_label: string, fn: () => T): T => {
+		return fn();
 	}, []);
 
 	// Actions executed through command history

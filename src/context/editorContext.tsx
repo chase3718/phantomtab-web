@@ -28,12 +28,12 @@ interface EditorContextType {
 const EditorContext = createContext<EditorContextType | null>(null);
 
 export function EditorProvider({ children }: { children: ReactNode }) {
-	const { scoreVersion, score } = useScore();
+	const { score } = useScore();
 	const [editorVersion, setEditorVersion] = useState(0);
 	const { canUndo, canRedo, undoDescription, redoDescription, execute, undo, redo, clear } = useCommandHistory();
 
 	// Keep a stable Editor instance tied to the current Score
-	const editor = useMemo(() => new Editor(score), [scoreVersion, score]);
+	const editor = useMemo(() => new Editor(score), [score]);
 
 	const bumpVersion = useCallback(() => {
 		setEditorVersion((v) => v + 1);
