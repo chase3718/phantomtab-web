@@ -28,6 +28,7 @@ export default function BeatRenderer({ beat, x, beatIndex }: BeatRendererProps) 
 			{/* Render notes */}
 			{beat.notes.map((note) => (
 				<NoteRenderer
+					beat={beat}
 					key={`${beat.id}-${note.pitch.step}${note.pitch.octave}`}
 					note={note}
 					x={beatWidth / 2}

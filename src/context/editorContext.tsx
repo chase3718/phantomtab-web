@@ -2,7 +2,8 @@ import { createContext, type ReactNode, useCallback, useMemo, useState } from 'r
 import Editor from '../model/editor';
 import { useScore } from '../hooks/useScore';
 import { useCommandHistory } from '../hooks/useCommandHistory';
-import { SelectBeatCommand } from '../commands';
+import {} from '../commands';
+import { SelectComponentCommand } from '../commands/EditorCommands';
 
 interface EditorContextType {
 	// Core objects
@@ -41,14 +42,14 @@ export function EditorProvider({ children }: { children: ReactNode }) {
 
 	const selectBeat = useCallback(
 		(beatId: string | null) => {
-			execute(new SelectBeatCommand(editor, beatId));
+			execute(new SelectComponentCommand(editor, beatId));
 			bumpVersion();
 		},
 		[editor, execute, bumpVersion]
 	);
 
 	const clearSelection = useCallback(() => {
-		execute(new SelectBeatCommand(editor, null));
+		execute(new SelectComponentCommand(editor, null));
 		bumpVersion();
 	}, [editor, execute, bumpVersion]);
 

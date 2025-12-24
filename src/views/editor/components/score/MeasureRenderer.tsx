@@ -1,5 +1,6 @@
 import type Measure from '../../../../model/measure';
-import { STAFF_HEIGHT, BEAT_PADDING } from './constants';
+import { BEAT_PADDING } from './constants';
+import { calculateMeasureHeight } from './utils';
 import StaffLines from './StaffLines';
 import Barlines from './Barlines';
 import BeatRenderer from './BeatRenderer';
@@ -17,6 +18,9 @@ export default function MeasureRenderer({ measure, index }: MeasureRendererProps
 	const isLastMeasure = measure.getNext() === null;
 	const startXOffset = isFirstMeasure ? 8 : 4;
 
+	// Calculate the required height based on notes extending beyond the staff
+	const { height: svgHeight, yOffset } = calculateMeasureHeight(measure);
+
 	return (
 		<div className="Score__PartView__measure">
 			{/* Measure Number */}
@@ -24,26 +28,30 @@ export default function MeasureRenderer({ measure, index }: MeasureRendererProps
 			<svg
 				className="Score__PartView__measure__staff-lines"
 				width={measureWidth}
-				height={STAFF_HEIGHT}
-				viewBox={`0 0 ${measureWidth} ${STAFF_HEIGHT}`}
+				height={svgHeight}
+				viewBox={`0 ${-yOffset} ${measureWidth} ${svgHeight}`}
 				style={{ overflow: 'visible' }}
 			>
-				{/* Staff Lines */}
-				<StaffLines width={measureWidth} />
+				{/* Staff Lines - positioned with yOffset for notes that extend above */}
+				<g transform={`translate(0, ${-yOffset})`}>
+					<StaffLines width={measureWidth} />
 
-				{/* Barlines */}
-				<Barlines measureWidth={measureWidth} isFirstMeasure={isFirstMeasure} isLastMeasure={isLastMeasure} />
+					{/* Barlines */}
+					<Barlines measureWidth={measureWidth} isFirstMeasure={isFirstMeasure} isLastMeasure={isLastMeasure} />
 
-				{/* Beats */}
-				{measure.beats.map((beat, beatIndex) => {
-					// Calculate x position for this beat
-					const xPosition = measure.beats
-						.slice(0, beatIndex)
-						.reduce((acc, b) => acc + b.getWidth() + BEAT_PADDING, startXOffset);
+					{/* Beats */}
+					{measure.beats.map((beat, beatIndex) => {
+						// Calculate x position for this beat
+						const xPosition = measure.beats
+							.slice(0, beatIndex)
+							.reduce((acc, b) => acc + b.getWidth() + BEAT_PADDING, startXOffset);
 
-					return <BeatRenderer key={beat.id} beat={beat} x={xPosition} beatIndex={beatIndex} />;
-				})}
+						return <BeatRenderer key={beat.id} beat={beat} x={xPosition} beatIndex={beatIndex} />;
+					})}
+				</g>
 			</svg>
+			<p>{measure.isComplete() ? 'Complete' : 'Incomplete'}</p>
+			<p>Beats: {measure.beats.length}</p>
 		</div>
 	);
 }

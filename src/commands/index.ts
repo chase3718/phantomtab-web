@@ -8,5 +8,5 @@ export {
 	AddNoteCommand,
 	RemoveNoteCommand,
 } from './ScoreCommands';
-export { SelectBeatCommand } from './EditorCommands';
+export { SelectComponentCommand } from './EditorCommands';
 export { CommandHistory, type HistoryState } from './CommandHistory';

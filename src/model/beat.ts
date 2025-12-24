@@ -19,16 +19,11 @@ export default class Beat {
 		this.id = Id.next();
 		this.duration = duration;
 
-		// Default to a C note (middle C) if no notes provided
+		// Default to a random note between C4 and C6 if no notes provided
 		if (!notes || notes.length === 0) {
 			const noteType = this.getNoteTypeFromDuration(duration);
-			this.notes = [
-				{
-					pitch: { step: 'C', octave: 4, alter: 0 },
-					type: noteType,
-					dots: 0,
-				},
-			];
+			const randomNote = this.getRandomNote(noteType);
+			this.notes = [randomNote];
 		} else {
 			this.notes = notes;
 		}
@@ -36,6 +31,18 @@ export default class Beat {
 		this.articulations = articulations || [];
 		this.previous = previous;
 		this.next = next;
+	}
+
+	private getRandomNote(noteType: Note['type']): Note {
+		const steps: Array<'C' | 'D' | 'E' | 'F' | 'G' | 'A' | 'B'> = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
+		const randomStep = steps[Math.floor(Math.random() * steps.length)];
+		const randomOctave = 4 + Math.floor(Math.random() * 2); // 4 or 5
+
+		return {
+			pitch: { step: randomStep, octave: randomOctave, alter: 0 },
+			type: noteType,
+			dots: 0,
+		};
 	}
 
 	private getNoteTypeFromDuration(

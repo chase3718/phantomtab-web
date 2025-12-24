@@ -4,26 +4,26 @@ import Editor from '../model/editor';
 /**
  * Command to select a beat in the editor (supports undo)
  */
-export class SelectBeatCommand implements Command {
+export class SelectComponentCommand implements Command {
 	private editor: Editor;
-	private newBeatId: string | null;
-	private previousBeatId: string | null = null;
+	private newComponentId: string | null;
+	private previousComponentId: string | null = null;
 
-	constructor(editor: Editor, beatId: string | null) {
+	constructor(editor: Editor, componentId: string | null) {
 		this.editor = editor;
-		this.newBeatId = beatId;
+		this.newComponentId = componentId;
 	}
 
 	execute(): void {
-		this.previousBeatId = this.editor.getSelectedBeat();
-		this.editor.setSelectedBeat(this.newBeatId);
+		this.previousComponentId = this.editor.getSelectedId();
+		this.editor.setSelectedId(this.newComponentId);
 	}
 
 	undo(): void {
-		this.editor.setSelectedBeat(this.previousBeatId);
+		this.editor.setSelectedId(this.previousComponentId);
 	}
 
 	getDescription(): string {
-		return this.newBeatId ? `Select beat ${this.newBeatId}` : 'Clear beat selection';
+		return this.newComponentId ? `Select component ${this.newComponentId}` : 'Clear component selection';
 	}
 }
