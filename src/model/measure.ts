@@ -33,9 +33,10 @@ export default class Measure {
 		if (beats && beats.length > 0) {
 			this.beats = beats;
 		} else {
-			const duration = timeSignature.numerator / timeSignature.denominator; // duration in whole notes
-			const defaultBeat = new Beat(duration, [], []);
-			this.beats = [defaultBeat];
+			// Create quarter note beats to fill the measure
+			const quarterNoteDuration = 1 / 4; // quarter note in whole notes
+			const numBeats = timeSignature.numerator; // for 4/4 time, this creates 4 beats
+			this.beats = Array.from({ length: numBeats }, () => new Beat(quarterNoteDuration, [], []));
 		}
 	}
 
