@@ -3,9 +3,9 @@ import Part from './part';
 import Measure from './measure';
 
 export class Score {
-	public readonly id: string;
-	public readonly title: string;
-	public readonly parts: Part[];
+	public id: string;
+	public title: string;
+	public parts: Part[];
 
 	constructor(title: string = 'Untitled', parts: Part[] = [new Part()]) {
 		this.id = Id.next();
@@ -78,16 +78,25 @@ export class Score {
 	}
 
 	public addPart(part: Part = new Part()): void {
-		if (this.parts.length > 0) {
-			while (part.measures.length !== this.parts[0].measures.length) {
-				if (part.measures.length < this.parts[0].measures.length) {
-					part.addMeasure();
-				} else {
-					part.removeLastMeasure();
-				}
-			}
+		if (this.parts.length === 0) {
+			// No existing parts; use the provided part as-is
+			this.parts.push(part);
+			return;
 		}
-		this.parts.push(part);
+
+		// Clone measure shapes (key/time) from the first part so the new part matches signatures
+		const templateMeasures = this.parts[0].measures;
+		const clonedMeasures: Measure[] = [];
+		let prev: Measure | null = null;
+		for (const tmpl of templateMeasures) {
+			// Chain previous/next links so measure.previous is correctly set
+			const m = new Measure(tmpl.key, tmpl.timeSignature, undefined, prev, null);
+			clonedMeasures.push(m);
+			prev = m;
+		}
+
+		const newPart = new Part(clonedMeasures, part.instrument, part.name);
+		this.parts.push(newPart);
 	}
 
 	public removePart(partId: string): void {

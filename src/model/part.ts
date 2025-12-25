@@ -2,10 +2,10 @@ import { Id } from '../utils/id';
 import Measure from './measure';
 
 export default class Part {
-	public readonly id: string;
-	public readonly name: string;
-	public readonly instrument: string;
-	public readonly measures: Measure[];
+	public id: string;
+	public name: string;
+	public instrument: string;
+	public measures: Measure[];
 
 	constructor(measures: Measure[] = [new Measure()], instrument: string = 'Piano', name: string = 'New Part') {
 		this.id = Id.next();
@@ -31,7 +31,7 @@ export default class Part {
 		}
 
 		const currentMeasure = this.measures[index];
-		const previousMeasure = currentMeasure.getPrevious();
+		const previousMeasure = currentMeasure.previous;
 
 		if (previousMeasure) {
 			previousMeasure.setNext(measure);
@@ -57,8 +57,8 @@ export default class Part {
 			throw new Error('Index out of bounds');
 		}
 		const measureToRemove = this.measures[index];
-		const previousMeasure = measureToRemove.getPrevious();
-		const nextMeasure = measureToRemove.getNext();
+		const previousMeasure = measureToRemove.previous;
+		const nextMeasure = measureToRemove.next;
 		if (previousMeasure) {
 			previousMeasure.setNext(nextMeasure);
 		}

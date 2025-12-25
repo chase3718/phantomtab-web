@@ -1,4 +1,5 @@
-import { BARLINE_STROKE_WIDTH, STAFF_HEIGHT } from './constants';
+import { STAFF_HEIGHT } from './constants';
+import { SMuFL } from './smufl';
 
 interface BarlinesProps {
 	measureWidth: number;
@@ -12,60 +13,34 @@ export default function Barlines({ measureWidth, isFirstMeasure, isLastMeasure, 
 		<>
 			{/* Start barline */}
 			{isFirstMeasure ? (
-				<>
-					<line
-						x1={startXOffset}
-						y1="0"
-						x2={startXOffset}
-						y2={STAFF_HEIGHT}
-						stroke="black"
-						strokeWidth={BARLINE_STROKE_WIDTH * 2}
-						className="barline barline--start-bold"
-					/>
-					<line
-						x1={startXOffset + 4}
-						y1="0"
-						x2={startXOffset + 4}
-						y2={STAFF_HEIGHT}
-						stroke="black"
-						strokeWidth={BARLINE_STROKE_WIDTH}
-						className="barline barline--start"
-					/>
-				</>
+				<></>
 			) : (
-				<line
-					x1={startXOffset}
-					y1="0"
-					x2={startXOffset}
-					y2={STAFF_HEIGHT}
-					stroke="black"
-					strokeWidth={BARLINE_STROKE_WIDTH}
-					className="barline barline--start"
-				/>
+				<text
+					x={startXOffset}
+					y={STAFF_HEIGHT}
+					fontFamily="Bravura"
+					fontSize="40"
+					textAnchor="start"
+					dominantBaseline="central"
+					fill="black"
+				>
+					{SMuFL.barlineSingle}
+				</text>
 			)}
 
 			{/* End barline */}
 			{isLastMeasure && (
-				<>
-					<line
-						x1={measureWidth - 4}
-						y1="0"
-						x2={measureWidth - 4}
-						y2={STAFF_HEIGHT}
-						stroke="black"
-						strokeWidth={BARLINE_STROKE_WIDTH}
-						className="barline barline--end"
-					/>
-					<line
-						x1={measureWidth}
-						y1="0"
-						x2={measureWidth}
-						y2={STAFF_HEIGHT}
-						stroke="black"
-						strokeWidth={BARLINE_STROKE_WIDTH * 2}
-						className="barline barline--end-bold"
-					/>
-				</>
+				<text
+					x={measureWidth - 8}
+					y={STAFF_HEIGHT}
+					fontFamily="Bravura"
+					fontSize="40"
+					textAnchor="start"
+					dominantBaseline="central"
+					fill="black"
+				>
+					{SMuFL.barlineFinal}
+				</text>
 			)}
 		</>
 	);

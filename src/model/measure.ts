@@ -1,19 +1,20 @@
 import type { Key, TimeSignature } from '../types';
 import { Id } from '../utils/id';
+import Voice from './voice';
 import Beat from './beat';
 
 export default class Measure {
 	public id: string;
 	public key: Key;
 	public timeSignature: TimeSignature;
-	public beats: Beat[];
-	private next: Measure | null = null;
-	private previous: Measure | null = null;
+	public voices: Voice[];
+	public next: Measure | null = null;
+	public previous: Measure | null = null;
 
 	constructor(
 		key: Key = 0,
 		timeSignature: TimeSignature = { numerator: 4, denominator: 4 },
-		beats?: Beat[],
+		voices?: Voice[],
 		previous: Measure | null = null,
 		next: Measure | null = null
 	) {
@@ -30,53 +31,83 @@ export default class Measure {
 			next.previous = this;
 		}
 
-		if (beats && beats.length > 0) {
-			this.beats = beats;
+		if (voices && voices.length > 0) {
+			this.voices = voices;
 		} else {
-			// Generate random beat durations that add up to the measure duration
-			const measureDuration = timeSignature.numerator / timeSignature.denominator; // duration in whole notes
-			this.beats = this.generateRandomBeats(measureDuration);
+			// Create a single default voice with random beats
+			const measureDuration = timeSignature.numerator / timeSignature.denominator;
+			const defaultVoice = new Voice(this.generateRandomBeats(measureDuration));
+			this.voices = [defaultVoice];
 		}
 	}
 
 	/**
 	 * Generate random beat durations that sum to the total measure duration
 	 */
-	private generateRandomBeats(totalDuration: number): Beat[] {
-		const minBeatDuration = 1 / 8; // eighth note (minimum)
-		const maxBeatDuration = 1 / 2; // half note (maximum)
-		const numBeats = Math.max(2, Math.min(6, Math.floor(Math.random() * 5) + 2)); // 2-6 beats
+	private generateRandomBeats(totalDuration: number, maxAttempts: number = 10): Array<Beat> {
+		const possibleDurations = [1, 0.5, 0.25, 0.125]; // whole, half, quarter, eighth notes
+		const MIN = 0.125;
+		const EPS = 1e-6;
 
-		// Generate random durations that sum to totalDuration
-		const durations: number[] = [];
-		let remainingDuration = totalDuration;
+		for (let attempt = 0; attempt < maxAttempts; attempt++) {
+			const numBeats = Math.max(2, Math.min(6, Math.floor(Math.random() * 5) + 2)); // 2-6 beats
+			const durations: number[] = [];
+			let remaining = totalDuration;
+			let valid = true;
 
-		for (let i = 0; i < numBeats - 1; i++) {
-			// For all but the last beat, generate a random duration
-			const maxForThisBeat = Math.min(maxBeatDuration, remainingDuration - (numBeats - i - 1) * minBeatDuration);
-			const minForThisBeat = Math.max(minBeatDuration, remainingDuration - (numBeats - i - 1) * maxBeatDuration);
+			for (let i = 0; i < numBeats - 1; i++) {
+				const beatsLeft = numBeats - i; // including this beat
+				const maxForBeat = remaining - (beatsLeft - 1) * MIN;
+				const validDurations = possibleDurations.filter((d) => d >= MIN - EPS && d <= maxForBeat + EPS);
 
-			if (minForThisBeat > maxForThisBeat) {
-				// Fallback if constraints are too tight
-				durations.push(remainingDuration / (numBeats - i));
-			} else {
-				const randomDuration = minForThisBeat + Math.random() * (maxForThisBeat - minForThisBeat);
-				durations.push(randomDuration);
-				remainingDuration -= randomDuration;
+				if (validDurations.length === 0) {
+					valid = false;
+					break;
+				}
+
+				const dur = validDurations[Math.floor(Math.random() * validDurations.length)];
+				durations.push(dur);
+				remaining -= dur;
+			}
+
+			if (!valid) continue;
+
+			const lastBeat = remaining;
+			const isValidLast = possibleDurations.some((d) => Math.abs(d - lastBeat) < EPS);
+
+			if (isValidLast) {
+				durations.push(lastBeat);
+				return durations.map((duration) => new Beat(duration));
 			}
 		}
 
-		// Last beat gets whatever is left to ensure exact total
-		durations.push(remainingDuration);
+		// Fallback: four equal quarter notes
+		const quarter = totalDuration / 4;
+		return [new Beat(quarter), new Beat(quarter), new Beat(quarter), new Beat(quarter)];
+	}
 
-		return durations.map((duration) => new Beat(duration, [], []));
+	/**
+	 * Get all beats from all voices (flattened)
+	 */
+	getAllBeats() {
+		return this.voices.flatMap((voice) => voice.beats);
+	}
+
+	/**
+	 * Get beats from a specific voice by index
+	 */
+	getVoiceBeats(voiceIndex: number) {
+		if (voiceIndex < 0 || voiceIndex >= this.voices.length) {
+			return [];
+		}
+		return this.voices[voiceIndex].beats;
 	}
 
 	/**
 	 * Get the total duration of all beats in the measure
 	 */
 	getTotalDuration(): number {
-		return this.beats.reduce((sum, beat) => sum + beat.duration, 0);
+		return this.voices.reduce((sum, voice) => sum + voice.getTotalDuration(), 0) / this.voices.length;
 	}
 
 	/**
@@ -87,14 +118,23 @@ export default class Measure {
 	}
 
 	/**
-	 * Check if the beats add up to the full measure duration
+	 * Check if all voices are complete (filled to measure duration)
 	 */
 	isComplete(): boolean {
-		return Math.abs(this.getTotalDuration() - this.getExpectedDuration()) < 0.0001; // small epsilon for floating point
+		return this.voices.every((voice) => Math.abs(voice.getTotalDuration() - this.getExpectedDuration()) < 0.0001);
 	}
 
-	getBeatIndex(beatId: string): number {
-		return this.beats.findIndex((beat) => beat.id === beatId);
+	/**
+	 * Get the index of a beat across all voices
+	 */
+	getBeatIndex(beatId: string): { voiceIndex: number; beatIndex: number } | null {
+		for (let voiceIndex = 0; voiceIndex < this.voices.length; voiceIndex++) {
+			const beatIndex = this.voices[voiceIndex].beats.findIndex((beat) => beat.id === beatId);
+			if (beatIndex !== -1) {
+				return { voiceIndex, beatIndex };
+			}
+		}
+		return null;
 	}
 
 	setNext(measure: Measure | null): void {
@@ -109,13 +149,5 @@ export default class Measure {
 		if (measure) {
 			measure.next = this;
 		}
-	}
-
-	getNext(): Measure | null {
-		return this.next;
-	}
-
-	getPrevious(): Measure | null {
-		return this.previous;
 	}
 }

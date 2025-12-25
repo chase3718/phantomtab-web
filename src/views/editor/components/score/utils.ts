@@ -1,5 +1,24 @@
-import { STAFF_HEIGHT, STAFF_LINE_SPACING } from './constants';
+import {
+	STAFF_HEIGHT,
+	STAFF_LINE_SPACING,
+	OPTICAL_ACCIDENTAL_PADDING,
+	OPTICAL_LEDGER_PADDING,
+	OPTICAL_EXTRA_NOTE_FACTOR,
+	CLEF_WIDTH,
+	TIME_SIG_WIDTH,
+	KEY_SIGNATURE_WIDTH_MOD,
+	BEAT_PADDING,
+	MIN_BEAT_VISUAL_WIDTH,
+	BEAT_COUNT_OVERHEAD,
+	CLEF_LEFT_MARGIN,
+	KEY_TO_TIME_MARGIN,
+	MEASURE_START_OFFSET,
+	BEAT_CONTENT_OFFSET,
+	CONTENT_END_PADDING,
+} from './constants';
 import type Measure from '../../../../model/measure';
+import type Beat from '../../../../model/beat';
+import type { Note } from '../../../../types';
 
 /**
  * Converts a pitch (step and octave) to a staff position
@@ -24,7 +43,15 @@ export const pitchToStaffPosition = (step: string, octave: number): number => {
 	// Each octave difference changes position by 7 (one full staff cycle)
 	// Octave 4 has B4 at position 0
 	const octaveOffset = (octave - 4) * 7;
-	const basePosition = stepPositions[step.toUpperCase()] - 6 || 0;
+	const normalizedStep = step.toUpperCase();
+	const stepPosition = stepPositions[normalizedStep];
+
+	if (stepPosition === undefined) {
+		console.warn(`Unknown pitch step '${step}' encountered; rendering skipped for safety.`);
+		return Number.NaN;
+	}
+
+	const basePosition = stepPosition - 6;
 	return basePosition + octaveOffset;
 };
 
@@ -44,11 +71,14 @@ export const calculateMeasureHeight = (measure: Measure): { height: number; yOff
 	let minStaffPosition = -4; // lowest staff line position
 	let maxStaffPosition = 4; // highest staff line position
 
-	measure.beats.forEach((beat) => {
-		beat.notes.forEach((note) => {
-			const position = pitchToStaffPosition(note.pitch.step, note.pitch.octave);
-			minStaffPosition = Math.min(minStaffPosition, position);
-			maxStaffPosition = Math.max(maxStaffPosition, position);
+	// Iterate through all voices and their beats
+	measure.voices.forEach((voice) => {
+		voice.beats.forEach((beat) => {
+			beat.notes.forEach((note) => {
+				const position = pitchToStaffPosition(note.pitch.step, note.pitch.octave);
+				minStaffPosition = Math.min(minStaffPosition, position);
+				maxStaffPosition = Math.max(maxStaffPosition, position);
+			});
 		});
 	});
 
@@ -62,3 +92,71 @@ export const calculateMeasureHeight = (measure: Measure): { height: number; yOff
 
 	return { height: totalHeight, yOffset };
 };
+
+const hasAccidental = (note: Note): boolean => !!note.pitch.alter;
+const hasLedger = (note: Note): boolean => Math.abs(pitchToStaffPosition(note.pitch.step, note.pitch.octave)) > 4;
+
+/**
+ * Compute a beat's visual width with optical padding for accidentals, ledger lines, and chord density.
+ */
+export const getBeatVisualWidth = (beat: Beat, unitWidth: number = 100): number => {
+	const baseWidth = Math.max(beat.duration * unitWidth, MIN_BEAT_VISUAL_WIDTH);
+	const anyAccidental = beat.notes.some(hasAccidental);
+	const anyLedger = beat.notes.some(hasLedger);
+	const chordExtra = Math.max(0, beat.notes.length - 1) * OPTICAL_EXTRA_NOTE_FACTOR * baseWidth;
+	const opticalPadding = (anyAccidental ? OPTICAL_ACCIDENTAL_PADDING : 0) + (anyLedger ? OPTICAL_LEDGER_PADDING : 0);
+
+	return baseWidth + chordExtra + opticalPadding;
+};
+
+/**
+ * Returns layout header widths and x position for measure content.
+ * Automatically includes key/time widths on the first measure or when they change.
+ */
+export function getMeasureLayout(measure: Measure) {
+	const isFirstMeasure = measure.previous === null;
+	const prev = measure.previous ?? undefined;
+
+	const clefWidth = isFirstMeasure ? CLEF_WIDTH : 0;
+	const clefLeftMargin = isFirstMeasure ? CLEF_LEFT_MARGIN : 0;
+
+	const keyChanged = isFirstMeasure || (prev && prev.key !== measure.key);
+	const keySigWidth = keyChanged ? Math.min(Math.abs(measure.key), 7) * KEY_SIGNATURE_WIDTH_MOD : 0;
+
+	const timeChanged =
+		isFirstMeasure ||
+		(prev &&
+			(prev.timeSignature.numerator !== measure.timeSignature.numerator ||
+				prev.timeSignature.denominator !== measure.timeSignature.denominator));
+	const timeSigWidth = timeChanged ? TIME_SIG_WIDTH : 0;
+
+	// Calculate x position where beat content starts
+	const headerMargin = timeSigWidth > 0 && keySigWidth > 0 ? KEY_TO_TIME_MARGIN : 0;
+	const contentStartX =
+		MEASURE_START_OFFSET + clefLeftMargin + clefWidth + keySigWidth + timeSigWidth + headerMargin + BEAT_CONTENT_OFFSET;
+
+	return { clefLeftMargin, clefWidth, keySigWidth, timeSigWidth, contentStartX };
+}
+
+/**
+ * Computes a single measure's base width including headers and content.
+ * This is used by ScoreView to derive max widths across parts by measure index.
+ */
+export function computeMeasureBaseWidth(measure: Measure): number {
+	const { contentStartX } = getMeasureLayout(measure);
+
+	// Calculate beat content width
+	const allBeats = measure.getAllBeats();
+	const beatWidthSum = allBeats.reduce((acc, beat) => {
+		const w = getBeatVisualWidth(beat);
+		return acc + (Number.isFinite(w) ? w : 0);
+	}, 0);
+
+	const paddingWidth = (allBeats.length - 1) * BEAT_PADDING;
+	const densityOverhead = allBeats.length * BEAT_COUNT_OVERHEAD;
+	const contentWidth = beatWidthSum + paddingWidth + densityOverhead;
+
+	// Total measure width (contentStartX already includes BEAT_CONTENT_OFFSET)
+	const totalWidth = contentStartX + contentWidth + CONTENT_END_PADDING;
+	return totalWidth;
+}

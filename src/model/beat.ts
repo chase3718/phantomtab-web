@@ -2,15 +2,16 @@ import type { Articulation, Note } from '../types';
 import { Id } from '../utils/id';
 
 export default class Beat {
-	public readonly id: string;
-	public readonly duration: number; // Duration in whole notes
-	public readonly notes: Note[];
-	public readonly articulations: Articulation[];
-	public readonly next: Beat | null = null;
-	public readonly previous: Beat | null = null;
+	public id: string;
+	public duration: number; // Duration in whole notes
+	public notes: Note[];
+	public placeInMeasure: number;
+	public articulations: Articulation[];
+	public next: Beat | null = null;
+	public previous: Beat | null = null;
 
 	constructor(
-		duration: number,
+		duration: number = 0.25,
 		notes?: Note[],
 		articulations?: Articulation[],
 		previous: Beat | null = null,
@@ -31,6 +32,13 @@ export default class Beat {
 		this.articulations = articulations || [];
 		this.previous = previous;
 		this.next = next;
+
+		// Calculate place in measure based on previous beats
+		if (previous) {
+			this.placeInMeasure = previous.placeInMeasure + previous.duration;
+		} else {
+			this.placeInMeasure = 0;
+		}
 	}
 
 	private getRandomNote(noteType: Note['type']): Note {
@@ -58,5 +66,9 @@ export default class Beat {
 
 	getWidth(unitWidth: number = 100): number {
 		return this.duration * unitWidth;
+	}
+
+	setDuration(newDuration: number): void {
+		this.duration = newDuration;
 	}
 }

@@ -1,5 +1,6 @@
 #Score {
     position: absolute;
+    font-family: 'Bravura', sans-serif;
     top: 0;
     left: 0;
     width: 100vw;
@@ -8,58 +9,64 @@
     max-height: calc(100vh - 48px);
     padding: 32px;
     overflow: scroll;
+    user-select: none;
+    -webkit-user-select: none;
+    -ms-user-select: none;
 
-
-
-    #Score__PartView {
-        display: flex;
-        flex-direction: column;
-        gap: 16px;
-        height: 100%;
+    #Score__Header {
+        display: block;
         margin-bottom: 32px;
 
+        h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 600;
+        }
+    }
 
-        .Score__PartView__part {
-            display: flex;
-            flex-direction: row;
-            width: max-content;
-            height: max-content;
-            gap: 16px;
-            background: rgba(0, 0, 0, 0.05);
-            border: 1px solid rgba(0, 0, 0, 0.1);
-            border-radius: 8px;
-            padding: 8px;
-            pointer-events: all;
+    #Score__PartView {
+        position: relative;
+        display: grid;
+        grid-auto-flow: row;
+        gap: 0;
+        width: max-content;
 
-            .Score__PartView__part-header {
-                font-weight: bold;
-                margin-bottom: 8px;
+        .ScoreView__PartRenderer {
+            display: grid;
+            grid-auto-flow: column;
+            gap: 0;
+            align-items: stretch;
+            border: 1px solid #ddd;
+            border-bottom: none;
+
+            &:last-child {
+                border-bottom: 1px solid #ddd;
             }
 
-            .Score__PartView__measures {
-                display: flex;
-                flex-direction: row;
-                gap: 0;
-                height: max-content;
+            .Score__PartView__measure {
+                display: grid;
+                align-items: center;
+                justify-items: center;
+                padding: 0;
+                border-right: 1px solid #ddd;
+                min-width: 120px;
 
-                .Score__PartView__measure {
-                    display: block;
+                &:last-child {
+                    border-right: none;
+                }
 
-                    height: max-content;
+                .Score__PartView__measure__number {
+                    display: none;
+                }
 
-                    .Score__PartView__measure__staff-lines {}
+                // .Score__PartView__measure__staff-lines {
+                //     width: 100%;
+                //     height: auto;
+                //     display: block;
+                // }
 
-                    .Score__PartView__measure__beat {
-                        cursor: pointer;
-
-                        rect {
-                            transition: fill 0.2s ease;
-                        }
-
-                        &:hover rect {
-                            fill: rgba(0, 0, 255, 0.2);
-                        }
-                    }
+                p {
+                    display: none;
                 }
             }
         }

@@ -1,12 +1,13 @@
 import { useScore } from '../../hooks/useScore';
-import { useState } from 'react';
 import ScoreView from './components/ScoreView';
+import { useState } from 'react';
+import type { Key } from '../../types';
 
 function Editor() {
+	const enableDevControls = import.meta.env.DEV;
 	const {
 		score,
 		addMeasure,
-		scoreVersion,
 		undo,
 		redo,
 		canUndo,
@@ -17,8 +18,22 @@ function Editor() {
 		insertMeasure,
 		removeMeasure,
 	} = useScore();
+	const [, forceUpdate] = useState({});
 
-	const [benchmarkResults, setBenchmarkResults] = useState<{ ts: number } | null>(null);
+	const setRandomKey = () => {
+		const keys: Key[] = [-5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5];
+		const randomKey = keys[Math.floor(Math.random() * keys.length)];
+
+		// Set key on first measure of all parts
+		for (const part of score.parts) {
+			if (part.measures.length > 0) {
+				part.measures[0].key = randomKey;
+			}
+		}
+
+		// Force re-render
+		forceUpdate({});
+	};
 
 	// Quick test routines to exercise commands/undo/redo
 	const runInsertRemoveSuite = () => {
@@ -82,7 +97,7 @@ function Editor() {
 			}
 		});
 
-		setBenchmarkResults({ ts: tsTime });
+		console.info(`[benchmark] JS layout: ${tsTime.toFixed(2)}ms over ${iterations} iterations`);
 	};
 
 	const createLargeDataset = () => {
@@ -99,34 +114,32 @@ function Editor() {
 		}
 
 		const endTime = performance.now();
-		setBenchmarkResults({ ts: endTime - startTime });
+		console.info(`[benchmark] Generated 10 parts × 100 measures in ${(endTime - startTime).toFixed(2)}ms`);
 	};
 
 	return (
 		<>
-			<div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', zIndex: 10, position: 'absolute', bottom: 10 }}>
-				<button onClick={() => addPart()}>Add part</button>
-				<button onClick={() => addMeasure()}>Add measure to all parts</button>
-				<button onClick={() => insertMeasure(1)}>Insert measure at position 2</button>
-				<button onClick={() => removeMeasure(Math.max(0, score.getMeasureCount() - 1))}>Remove last measure</button>
-				<button onClick={runInsertRemoveSuite}>Run insert/remove suite</button>
-				<button onClick={runBulkAddSuite}>Run bulk add suite</button>
-				<button onClick={() => undo()} disabled={!canUndo} title={undoDescription ?? undefined}>
-					Undo
-				</button>
-				<button onClick={() => redo()} disabled={!canRedo} title={redoDescription ?? undefined}>
-					Redo
-				</button>
-				<button onClick={runBenchmark}>Run Benchmark</button>
-				<button onClick={createLargeDataset} style={{ backgroundColor: '#FF9800', color: 'white' }}>
-					Create 10 Parts × 100 Measures
-				</button>
-			</div>
-			{/* {benchmarkResults && (
-				<div style={{ margin: '12px 0', padding: '8px', backgroundColor: '#f5f5f5', borderRadius: 4 }}>
-					<strong>Benchmark Results:</strong> TS: {benchmarkResults.ts.toFixed(2)}ms
+			{enableDevControls && (
+				<div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', zIndex: 10, position: 'absolute', bottom: 10 }}>
+					<button onClick={() => addPart()}>Add part</button>
+					<button onClick={() => addMeasure()}>Add measure to all parts</button>
+					<button onClick={() => insertMeasure(1)}>Insert measure at position 2</button>
+					<button onClick={() => removeMeasure(Math.max(0, score.getMeasureCount() - 1))}>Remove last measure</button>
+					<button onClick={setRandomKey}>Set random key</button>
+					<button onClick={runInsertRemoveSuite}>Run insert/remove suite</button>
+					<button onClick={runBulkAddSuite}>Run bulk add suite</button>
+					<button onClick={() => undo()} disabled={!canUndo} title={undoDescription ?? undefined}>
+						Undo
+					</button>
+					<button onClick={() => redo()} disabled={!canRedo} title={redoDescription ?? undefined}>
+						Redo
+					</button>
+					<button onClick={runBenchmark}>Run Benchmark</button>
+					<button onClick={createLargeDataset} style={{ backgroundColor: '#FF9800', color: 'white' }}>
+						Create 10 Parts × 100 Measures
+					</button>
 				</div>
-			)} */}
+			)}
 			<ScoreView />
 		</>
 	);

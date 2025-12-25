@@ -1,19 +1,32 @@
 import type Part from '../../../../model/part';
+import { STAFF_HEIGHT } from './constants';
 import MeasureRenderer from './MeasureRenderer';
 
 interface PartRendererProps {
 	part: Part;
+	measureWidths: number[];
 }
 
-export default function PartRenderer({ part }: PartRendererProps) {
+export default function PartRenderer({ part, measureWidths }: PartRendererProps) {
+	const fallbackWidth = 120;
+	const verticalPadding = 20;
+	const measureHeight = STAFF_HEIGHT + verticalPadding * 2;
+	const containerStyle: React.CSSProperties = {
+		display: 'flex',
+		alignItems: 'flex-start',
+		gap: 0,
+	};
+
 	return (
-		<div id={`Score__PartView__part-${part.id}`} className="Score__PartView__part">
-			<h2 className={`Score__PartView__part-${part.id}-header`}>{part.name}</h2>
-			<div id={`Score__PartView__part-${part.id}__measures`} className="Score__PartView__measures">
-				{part.measures.map((measure, index) => (
-					<MeasureRenderer key={measure.id} measure={measure} index={index} />
-				))}
-			</div>
+		<div className="ScoreView__PartRenderer" style={containerStyle}>
+			{part.measures.map((measure, index) => {
+				const width = measureWidths[index] ?? fallbackWidth;
+				return (
+					<svg key={measure.id} width={width} height={measureHeight}>
+						<MeasureRenderer measure={measure} forcedWidth={width} yOffset={verticalPadding} />
+					</svg>
+				);
+			})}
 		</div>
 	);
 }

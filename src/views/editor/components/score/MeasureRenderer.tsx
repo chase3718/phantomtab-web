@@ -1,57 +1,39 @@
-import type Measure from '../../../../model/measure';
-import { BEAT_PADDING } from './constants';
-import { calculateMeasureHeight } from './utils';
-import StaffLines from './StaffLines';
+import Measure from '../../../../model/measure';
 import Barlines from './Barlines';
-import BeatRenderer from './BeatRenderer';
+import ClefRenderer from './ClefRenderer';
+import { CLEF_WIDTH, CLEF_LEFT_MARGIN, KEY_SIGNATURE_WIDTH_MOD, KEY_TO_TIME_MARGIN } from './constants';
+import KeyRenderer from './KeyRenderer';
+import StaffLines from './StaffLines';
+import TimeSignatureRenderer from './TimeSignatureRenderer';
+import BeatsRenderer from './BeatsRenderer';
 
-interface MeasureRendererProps {
+type MeasureRendererProps = {
 	measure: Measure;
-	index: number;
-}
+	forcedWidth: number;
+	yOffset?: number;
+};
 
-export default function MeasureRenderer({ measure, index }: MeasureRendererProps) {
-	const measureWidth =
-		measure.beats.reduce((acc, beat) => acc + beat.getWidth() + BEAT_PADDING, 0) +
-		(measure.getPrevious() === null ? 8 : 4);
-	const isFirstMeasure = measure.getPrevious() === null;
-	const isLastMeasure = measure.getNext() === null;
-	const startXOffset = isFirstMeasure ? 8 : 4;
-
-	// Calculate the required height based on notes extending beyond the staff
-	const { height: svgHeight, yOffset } = calculateMeasureHeight(measure);
+export default function MeasureRenderer({ measure, forcedWidth, yOffset = 0 }: MeasureRendererProps) {
+	// Precompute key sig width for x offsets only (width is provided via layout)
+	const keySigWidth = measure.key !== 0 ? KEY_SIGNATURE_WIDTH_MOD * Math.min(Math.abs(measure.key), 7) : 0;
+	const width = forcedWidth;
 
 	return (
-		<div className="Score__PartView__measure">
-			{/* Measure Number */}
-			<div className="Score__PartView__measure__number">{index + 1}</div>
-			<svg
-				className="Score__PartView__measure__staff-lines"
-				width={measureWidth}
-				height={svgHeight}
-				viewBox={`0 ${-yOffset} ${measureWidth} ${svgHeight}`}
-				style={{ overflow: 'visible' }}
-			>
-				{/* Staff Lines - positioned with yOffset for notes that extend above */}
-				<g transform={`translate(0, ${-yOffset})`}>
-					<StaffLines width={measureWidth} />
-
-					{/* Barlines */}
-					<Barlines measureWidth={measureWidth} isFirstMeasure={isFirstMeasure} isLastMeasure={isLastMeasure} />
-
-					{/* Beats */}
-					{measure.beats.map((beat, beatIndex) => {
-						// Calculate x position for this beat
-						const xPosition = measure.beats
-							.slice(0, beatIndex)
-							.reduce((acc, b) => acc + b.getWidth() + BEAT_PADDING, startXOffset);
-
-						return <BeatRenderer key={beat.id} beat={beat} x={xPosition} beatIndex={beatIndex} />;
-					})}
-				</g>
-			</svg>
-			<p>{measure.isComplete() ? 'Complete' : 'Incomplete'}</p>
-			<p>Beats: {measure.beats.length}</p>
-		</div>
+		<g transform={`translate(0, ${yOffset})`}>
+			{/* Render the staff lines */}
+			{measure.previous == null && (
+				<>
+					<ClefRenderer x={CLEF_LEFT_MARGIN} />
+					<KeyRenderer x={CLEF_LEFT_MARGIN + CLEF_WIDTH} keySignature={measure.key} />
+					<TimeSignatureRenderer
+						x={CLEF_LEFT_MARGIN + CLEF_WIDTH + keySigWidth + KEY_TO_TIME_MARGIN}
+						timeSignature={measure.timeSignature}
+					/>
+				</>
+			)}
+			<StaffLines width={width} />
+			<BeatsRenderer measure={measure} />
+			<Barlines measureWidth={width} isFirstMeasure={false} isLastMeasure={!measure.next} />
+		</g>
 	);
 }
