@@ -11,9 +11,10 @@ type MeasureRendererProps = {
 	measure: Measure;
 	forcedWidth: number;
 	yOffset?: number;
+	partCount: number;
 };
 
-export default function MeasureRenderer({ measure, forcedWidth, yOffset = 0 }: MeasureRendererProps) {
+export default function MeasureRenderer({ measure, forcedWidth, yOffset = 0, partCount }: MeasureRendererProps) {
 	// Precompute key sig width for x offsets only (width is provided via layout)
 	const keySigWidth = measure.key !== 0 ? KEY_SIGNATURE_WIDTH_MOD * Math.min(Math.abs(measure.key), 7) : 0;
 	const width = forcedWidth;
@@ -32,7 +33,7 @@ export default function MeasureRenderer({ measure, forcedWidth, yOffset = 0 }: M
 				</>
 			)}
 			<StaffLines width={width} />
-			<BeatsRenderer measure={measure} />
+			<BeatsRenderer measureWidth={width} measure={measure} partCount={partCount} />
 			<Barlines measureWidth={width} isFirstMeasure={false} isLastMeasure={!measure.next} />
 		</g>
 	);

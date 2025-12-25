@@ -38,7 +38,7 @@ export default function ScoreView() {
 			</span>
 			<span id="Score__PartView">
 				{parts.map((part) => (
-					<PartRenderer key={part.id} part={part} measureWidths={measureMaxWidths} />
+					<PartRenderer key={part.id} part={part} measureWidths={measureMaxWidths} partCount={parts.length} />
 				))}
 			</span>
 		</div>
