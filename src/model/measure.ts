@@ -150,4 +150,15 @@ export default class Measure {
 			measure.next = this;
 		}
 	}
+
+	getWidth(): number {
+		let maxWidth = 0;
+		this.voices.forEach((voice) => {
+			const voiceWidth = voice.getWidth();
+			if (voiceWidth > maxWidth) {
+				maxWidth = voiceWidth;
+			}
+		});
+		return maxWidth;
+	}
 }

@@ -58,4 +58,8 @@ export default class Voice {
 	getBeatIndex(beatId: string): number {
 		return this.beats.findIndex((beat) => beat.id === beatId);
 	}
+
+	getWidth(unitWidth: number = 250): number {
+		return this.beats.reduce((sum, beat) => sum + beat.getWidth(unitWidth), 0);
+	}
 }

@@ -64,11 +64,20 @@ export default class Beat {
 		return 'thirty-second';
 	}
 
-	getWidth(unitWidth: number = 100): number {
-		return this.duration * unitWidth;
+	getWidth(unitWidth: number = 250): number {
+		return durationToWidthMap[this.duration] * unitWidth;
 	}
 
 	setDuration(newDuration: number): void {
 		this.duration = newDuration;
 	}
 }
+
+const durationToWidthMap: { [key: number]: number } = {
+	1: 1, // whole note
+	0.5: 0.5, // half note
+	0.25: 0.25, // quarter note
+	0.125: 0.125, // eighth note
+	0.0625: 0.1, // sixteenth note
+	0.03125: 0.1, // thirty-second note
+};

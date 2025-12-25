@@ -39,7 +39,7 @@ export default function Barlines({ measureWidth, isFirstMeasure, isLastMeasure, 
 					dominantBaseline="central"
 					fill="black"
 				>
-					{SMuFL.barlineFinal}
+					{SMuFL.barlineSingle}
 				</text>
 			)}
 		</>
