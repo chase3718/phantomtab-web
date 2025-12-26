@@ -1,4 +1,5 @@
 import type { Key } from '../../../../types';
+import { memo } from 'react';
 import { KEY_SIG_FONT_SIZE, STAFF_LINE_SPACING } from './constants';
 import { SMuFL } from './smufl';
 import StaffLines from './StaffLines';
@@ -31,7 +32,7 @@ const FLAT_ORDER: Array<{ step: string; octave: number }> = [
 	{ step: 'F', octave: 4 },
 ];
 
-export default function KeySigRenderer({ x = 0, keySignature = 0, yOffset = 0 }: KeyRendererProps) {
+function KeySigRenderer({ x = 0, keySignature = 0, yOffset = 0 }: KeyRendererProps) {
 	if (keySignature === 0) return null;
 
 	const isSharp = keySignature > 0;
@@ -42,7 +43,7 @@ export default function KeySigRenderer({ x = 0, keySignature = 0, yOffset = 0 }:
 	const width = accidentalSpacing * count;
 
 	return (
-		<svg className="Score__PartView__clef" width={width} height={'100%'}>
+		<svg className="Score__PartView__keySig" width={width} height={'100%'}>
 			<StaffLines yOffset={yOffset} width={width + 1} />
 			<g aria-label="key-signature">
 				{order.slice(0, count).map((pitch, index) => {
@@ -91,3 +92,5 @@ export default function KeySigRenderer({ x = 0, keySignature = 0, yOffset = 0 }:
 		// </g>
 	);
 }
+
+export default memo(KeySigRenderer);

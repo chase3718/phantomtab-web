@@ -23,6 +23,10 @@ export class Score {
 		this.id = Id.next();
 		this.title = title;
 		this.parts = parts;
+		// Set parent references for parts
+		for (const part of this.parts) {
+			part.parent = this;
+		}
 	}
 
 	public toString(): string {
@@ -108,6 +112,7 @@ export class Score {
 	public addPart(part: Part = new Part()): void {
 		if (this.parts.length === 0) {
 			// No existing parts; use the provided part as-is
+			part.parent = this;
 			this.parts.push(part);
 			this.emit('partsChanged', { action: 'add', index: 0, count: 1 });
 			return;
@@ -125,6 +130,7 @@ export class Score {
 		}
 
 		const newPart = new Part(clonedMeasures, part.instrument, part.name);
+		newPart.parent = this;
 		this.parts.push(newPart);
 		this.emit('partsChanged', { action: 'add', index: this.parts.length - 1, count: 1 });
 	}
@@ -132,7 +138,8 @@ export class Score {
 	public removePart(partId: string): void {
 		const index = this.parts.findIndex((p) => p.id === partId);
 		if (index >= 0) {
-			this.parts.splice(index, 1);
+			const removed = this.parts.splice(index, 1)[0];
+			if (removed) removed.parent = null;
 			this.emit('partsChanged', { action: 'remove', index, count: 1 });
 		}
 	}

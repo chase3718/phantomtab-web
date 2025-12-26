@@ -115,6 +115,7 @@ function Editor() {
 
 		const endTime = performance.now();
 		console.info(`[benchmark] Generated 10 parts × 100 measures in ${(endTime - startTime).toFixed(2)}ms`);
+		console.log(score.parts.length, 'parts created with', score.getMeasureCount(), 'measures each');
 	};
 
 	return (

@@ -2,6 +2,7 @@ import type { Clef, Key, TimeSignature } from '../types';
 import { Id } from '../utils/id';
 import Voice from './voice';
 import Beat from './beat';
+import type Part from './part';
 
 export default class Measure {
 	public id: string;
@@ -11,6 +12,8 @@ export default class Measure {
 	public next: Measure | null = null;
 	public previous: Measure | null = null;
 	public clef: Clef = 'treble';
+	public parent: Part | null = null;
+	public measureLayout: Array<Array<Beat> | null> = [];
 
 	constructor(
 		key: Key = 0,
@@ -38,10 +41,61 @@ export default class Measure {
 			this.voices = voices;
 		} else {
 			// Create a single default voice with four even beats deterministically
-			const beats = this.createEvenBeats(timeSignature, 4);
+			const beats = this.createRandomBeats(timeSignature);
 			const defaultVoice = new Voice(beats);
 			this.voices = [defaultVoice];
 		}
+		// Set parent references for voices
+		for (const voice of this.voices) {
+			voice.parent = this;
+		}
+		this.computeMeasureLayout();
+	}
+
+	private createRandomBeats(timeSignature: TimeSignature): Beat[] {
+		const totalDuration = timeSignature.numerator / timeSignature.denominator;
+		const beatDurations = [0.25, 0.5, 1, 1.5, 2]; // Common beat durations in whole notes
+		const beats: Beat[] = [];
+		let accumulatedDuration = 0;
+		let prev: Beat | null = null;
+
+		// Note generation helpers
+		const steps: Array<'C' | 'D' | 'E' | 'F' | 'G' | 'A' | 'B'> = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
+		const octaves = [3, 4, 5];
+		const alters: Array<-2 | -1 | 0 | 1 | 2> = [-1, 0, 1];
+
+		const durationToType = (dur: number): 'whole' | 'half' | 'quarter' | 'eighth' | 'sixteenth' | 'thirty-second' => {
+			if (dur >= 1) return 'whole';
+			if (dur >= 0.5) return 'half';
+			if (dur >= 0.25) return 'quarter';
+			if (dur >= 0.125) return 'eighth';
+			if (dur >= 0.0625) return 'sixteenth';
+			return 'thirty-second';
+		};
+
+		while (accumulatedDuration < totalDuration) {
+			// Randomly select a beat duration that doesn't exceed the total
+			const possibleDurations = beatDurations.filter((dur) => accumulatedDuration + dur <= totalDuration);
+			const duration = possibleDurations[Math.floor(Math.random() * possibleDurations.length)];
+
+			// Generate random note
+			const note = {
+				pitch: {
+					step: steps[Math.floor(Math.random() * steps.length)],
+					octave: octaves[Math.floor(Math.random() * octaves.length)],
+					alter: alters[Math.floor(Math.random() * alters.length)],
+				},
+				type: durationToType(duration),
+				dots: 0,
+			};
+
+			const beat: Beat = new Beat(duration, note, [], prev, null);
+			if (prev) prev.next = beat;
+			beats.push(beat);
+			prev = beat;
+			accumulatedDuration += duration;
+		}
+		return beats;
 	}
 
 	private createEvenBeats(timeSignature: TimeSignature, slots: number): Beat[] {
@@ -138,5 +192,33 @@ export default class Measure {
 
 	setTimeSignature(newTimeSignature: TimeSignature): void {
 		this.timeSignature = newTimeSignature;
+	}
+
+	private computeMeasureLayout(): void {
+		const num32ndNotes = (32 / this.timeSignature.denominator) * this.timeSignature.numerator;
+		const layout: Array<Array<Beat> | null> = Array(num32ndNotes).fill(null);
+
+		// Merge all voice layouts into a single layout
+		for (const voice of this.voices) {
+			for (const beat of voice.beats) {
+				const beatLocation = Math.round(beat.placeInMeasure * 32);
+				if (beatLocation >= 0 && beatLocation < num32ndNotes) {
+					if (layout[beatLocation] === null) {
+						layout[beatLocation] = [beat];
+					} else {
+						layout[beatLocation]!.push(beat);
+					}
+				}
+			}
+		}
+		this.measureLayout = layout;
+	}
+
+	public updateMeasureLayout(): void {
+		this.computeMeasureLayout();
+		// Update voice layouts as well (but don't recurse back here)
+		for (const voice of this.voices) {
+			voice.computeMeasureLayout();
+		}
 	}
 }

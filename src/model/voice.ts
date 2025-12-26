@@ -1,9 +1,12 @@
 import { Id } from '../utils/id';
 import Beat from './beat';
+import type Measure from './measure';
 
 export default class Voice {
 	public id: string;
 	public beats: Beat[];
+	public parent: Measure | null = null;
+	public measureLayout: Array<Beat | null> = [];
 
 	constructor(beats?: Beat[]) {
 		this.id = Id.next();
@@ -15,6 +18,11 @@ export default class Voice {
 			this.beats = [new Beat(0.25)];
 		}
 		this.reflowBeats();
+		// Set parent references for beats
+		for (const beat of this.beats) {
+			beat.parent = this;
+		}
+		this.computeMeasureLayout();
 	}
 
 	/**
@@ -32,16 +40,28 @@ export default class Voice {
 	}
 
 	addBeat(beat: Beat = new Beat(0.25)): void {
+		beat.parent = this;
 		this.beats.push(beat);
 		this.reflowBeats();
+		this.computeMeasureLayout();
+		// Propagate layout update to parent measure
+		if (this.parent) {
+			this.parent.updateMeasureLayout();
+		}
 	}
 
 	insertBeatAt(index: number, beat: Beat = new Beat(0.25)): void {
 		if (index < 0 || index > this.beats.length) {
 			throw new Error('Index out of bounds');
 		}
+		beat.parent = this;
 		this.beats.splice(index, 0, beat);
 		this.reflowBeats();
+		this.computeMeasureLayout();
+		// Propagate layout update to parent measure
+		if (this.parent) {
+			this.parent.updateMeasureLayout();
+		}
 	}
 
 	removeBeatAt(index: number): Beat | undefined {
@@ -49,7 +69,13 @@ export default class Voice {
 			return undefined;
 		}
 		const [removed] = this.beats.splice(index, 1);
+		if (removed) removed.parent = null;
 		this.reflowBeats();
+		this.computeMeasureLayout();
+		// Propagate layout update to parent measure
+		if (this.parent) {
+			this.parent.updateMeasureLayout();
+		}
 		return removed;
 	}
 
@@ -58,7 +84,13 @@ export default class Voice {
 			return undefined;
 		}
 		const removed = this.beats.pop();
+		if (removed) removed.parent = null;
 		this.reflowBeats();
+		this.computeMeasureLayout();
+		// Propagate layout update to parent measure
+		if (this.parent) {
+			this.parent.updateMeasureLayout();
+		}
 		return removed;
 	}
 
@@ -77,5 +109,27 @@ export default class Voice {
 			current.placeInMeasure = position;
 			position += current.duration;
 		}
+	}
+
+	public computeMeasureLayout(): void {
+		if (!this.parent) {
+			this.measureLayout = [];
+			return;
+		}
+		const ts = this.parent.timeSignature;
+		const num32ndNotes = (32 / ts.denominator) * ts.numerator;
+		const layout: Array<Beat | null> = Array(num32ndNotes).fill(null);
+
+		for (const beat of this.beats) {
+			const beatLocation = Math.round(beat.placeInMeasure * 32);
+			if (beatLocation >= 0 && beatLocation < num32ndNotes && layout[beatLocation] === null) {
+				layout[beatLocation] = beat;
+			}
+		}
+		this.measureLayout = layout;
+	}
+
+	public updateMeasureLayout(): void {
+		this.computeMeasureLayout();
 	}
 }

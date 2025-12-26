@@ -1,5 +1,6 @@
-import type { Articulation, Clef, Key, Note } from '../types';
+import type { Articulation, Clef, Note } from '../types';
 import { Id } from '../utils/id';
+import type Voice from './voice';
 
 export default class Beat {
 	public id: string;
@@ -9,6 +10,7 @@ export default class Beat {
 	public articulations: Articulation[];
 	public next: Beat | null = null;
 	public previous: Beat | null = null;
+	public parent: Voice | null = null;
 
 	constructor(
 		duration: number = 0.25,
@@ -50,7 +52,7 @@ export default class Beat {
 
 		const noteOffset = noteOffsets[this.note.pitch.step];
 		const octaveOffset = (this.note.pitch.octave - 4) * 7; // Each octave has 7 staff positions
-		const clefOffset = clefOffsets[clef];
+		const clefOffset = getClefOffset(clef);
 		return noteOffset + octaveOffset + clefOffset;
 	}
 
@@ -69,10 +71,21 @@ const noteOffsets = {
 	B: 6,
 };
 
-const clefOffsets: { [key in Clef]: number } = {
-	treble: 6,
+const clefOffsets = {
+	treble: -6,
 	bass: -6,
 	alto: 0,
 	tenor: -2,
-	CClef: 0,
-};
+} as const;
+
+function getClefOffset(clef: Clef): number {
+	// String clefs use fixed offsets
+	if (typeof clef === 'string') {
+		return clefOffsets[clef] ?? 0;
+	}
+	// CClef centers on the provided line (1..5). Alto (line 3) maps to offset 0.
+	// Moving the C clef up a line decreases offset by 2; down a line increases by 2.
+	// Formula: offset = (3 - line) * 2
+	const line = Math.min(5, Math.max(1, clef.line));
+	return (3 - line) * 2;
+}

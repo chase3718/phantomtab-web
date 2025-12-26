@@ -1,4 +1,5 @@
 import type { Clef } from '../../../../types';
+import { memo } from 'react';
 import { STAFF_HEIGHT, CLEF_FONT_SIZE, CLEF_WIDTH, CLEF_LEFT_MARGIN } from './constants';
 import { SMuFL } from './smufl';
 import StaffLines from './StaffLines';
@@ -9,7 +10,7 @@ interface ClefRendererProps {
 	clefType?: Clef;
 }
 
-export default function ClefRenderer({ x = 0, clefType = 'treble', yOffset = 0 }: ClefRendererProps) {
+function ClefRenderer({ x = 0, clefType = 'treble', yOffset = 0 }: ClefRendererProps) {
 	let glyph: string;
 	let cleffOffset = 0;
 
@@ -48,3 +49,5 @@ export default function ClefRenderer({ x = 0, clefType = 'treble', yOffset = 0 }
 		</svg>
 	);
 }
+
+export default memo(ClefRenderer);

@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { STAFF_HEIGHT } from './constants';
 import { SMuFL } from './smufl';
 
@@ -7,7 +8,7 @@ interface BarlinesProps {
 	yOffset: number;
 }
 
-export default function Barlines({ measureWidth, isLastMeasure, yOffset }: BarlinesProps) {
+function Barlines({ measureWidth, isLastMeasure, yOffset }: BarlinesProps) {
 	return (
 		<>
 			{/* Start barline */}
@@ -26,3 +27,5 @@ export default function Barlines({ measureWidth, isLastMeasure, yOffset }: Barli
 		</>
 	);
 }
+
+export default memo(Barlines);

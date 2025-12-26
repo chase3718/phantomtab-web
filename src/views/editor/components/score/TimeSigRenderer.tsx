@@ -2,8 +2,9 @@ import type { TimeSignature } from '../../../../types';
 import { STAFF_LINE_SPACING, TIME_SIG_FONT_SIZE, TIME_SIG_HEIGHT, TIME_SIG_WIDTH } from './constants';
 import { SMuFL } from './smufl';
 import StaffLines from './StaffLines';
+import { memo, useMemo } from 'react';
 
-export default function TimeSigRenderer({
+function TimeSigRenderer({
 	timeSignature = { numerator: 4, denominator: 4 },
 	yOffset = 0,
 	x = 0,
@@ -12,8 +13,10 @@ export default function TimeSigRenderer({
 	yOffset?: number;
 	x?: number;
 }) {
+	const numeratorGlyph = useMemo(() => numberToGlyph(timeSignature.numerator), [timeSignature.numerator]);
+	const denominatorGlyph = useMemo(() => numberToGlyph(timeSignature.denominator), [timeSignature.denominator]);
 	return (
-		<svg className="Score__PartView__clef" width={TIME_SIG_WIDTH} height={'100%'}>
+		<svg className="Score__PartView__timeSig" width={TIME_SIG_WIDTH} height={'100%'}>
 			<StaffLines width={TIME_SIG_WIDTH} yOffset={yOffset} />
 			<text
 				x={x}
@@ -24,7 +27,7 @@ export default function TimeSigRenderer({
 				dominantBaseline="central"
 				fill="black"
 			>
-				{numberToGlyph(timeSignature.numerator)}
+				{numeratorGlyph}
 			</text>
 			<text
 				x={x}
@@ -35,7 +38,7 @@ export default function TimeSigRenderer({
 				dominantBaseline="central"
 				fill="black"
 			>
-				{numberToGlyph(timeSignature.denominator)}
+				{denominatorGlyph}
 			</text>
 		</svg>
 	);
@@ -81,3 +84,5 @@ function numberToGlyph(num: number): string {
 	}
 	return glyphs;
 }
+
+export default memo(TimeSigRenderer);

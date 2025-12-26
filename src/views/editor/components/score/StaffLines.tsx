@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { STAFF_LINE_SPACING } from './constants';
 
 interface StaffLinesProps {
@@ -5,7 +6,7 @@ interface StaffLinesProps {
 	yOffset?: number;
 }
 
-export default function StaffLines({ width, yOffset = 0 }: StaffLinesProps) {
+function StaffLines({ width, yOffset = 0 }: StaffLinesProps) {
 	return (
 		<g aria-label="staff-lines">
 			{[0, 1, 2, 3, 4].map((lineIndex) => (
@@ -22,3 +23,5 @@ export default function StaffLines({ width, yOffset = 0 }: StaffLinesProps) {
 		</g>
 	);
 }
+
+export default memo(StaffLines);

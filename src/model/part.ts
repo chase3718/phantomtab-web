@@ -1,22 +1,29 @@
 import { Id } from '../utils/id';
 import Measure from './measure';
+import type { Score } from './score';
 
 export default class Part {
 	public id: string;
 	public name: string;
 	public instrument: string;
 	public measures: Measure[];
+	public parent: Score | null = null;
 
 	constructor(measures: Measure[] = [new Measure()], instrument: string = 'Piano', name: string = 'New Part') {
 		this.id = Id.next();
 		this.measures = measures;
 		this.name = name;
 		this.instrument = instrument;
+		// Set parent references
+		for (const measure of this.measures) {
+			measure.parent = this;
+		}
 	}
 
 	addMeasure(measure: Measure = new Measure()): void {
 		const lastMeasure = this.measures[this.measures.length - 1];
 		lastMeasure.setNext(measure);
+		measure.parent = this;
 		this.measures.push(measure);
 	}
 
@@ -37,6 +44,7 @@ export default class Part {
 			previousMeasure.setNext(measure);
 		}
 		measure.setNext(currentMeasure);
+		measure.parent = this;
 		this.measures.splice(index, 0, measure);
 	}
 
@@ -45,6 +53,7 @@ export default class Part {
 			return undefined;
 		}
 		const lastMeasure = this.measures.pop()!;
+		lastMeasure.parent = null;
 		const newLastMeasure = this.measures[this.measures.length - 1];
 		if (newLastMeasure) {
 			newLastMeasure.setNext(null);
@@ -65,6 +74,7 @@ export default class Part {
 		if (nextMeasure) {
 			nextMeasure.setPrevious(previousMeasure);
 		}
+		measureToRemove.parent = null;
 		this.measures.splice(index, 1);
 		return measureToRemove;
 	}
