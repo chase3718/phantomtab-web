@@ -56,11 +56,12 @@ export const calculatePartHeight = (measures: Measure[]): { height: number; yOff
 	measures.forEach((measure) => {
 		measure.voices.forEach((voice) => {
 			voice.beats.forEach((beat) => {
-				beat.notes.forEach((note) => {
-					const position = pitchToStaffPosition(note.pitch.step, note.pitch.octave);
+				// Beat currently supports a single note; account for nulls
+				if (beat.note) {
+					const position = pitchToStaffPosition(beat.note.pitch.step, beat.note.pitch.octave);
 					minStaffPosition = Math.min(minStaffPosition, position);
 					maxStaffPosition = Math.max(maxStaffPosition, position);
-				});
+				}
 			});
 		});
 	});

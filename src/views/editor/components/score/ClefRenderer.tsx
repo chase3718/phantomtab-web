@@ -20,15 +20,15 @@ export default function ClefRenderer({ x = 0, clefType = 'treble', yOffset = 0 }
 			break;
 		case 'bass':
 			glyph = SMuFL.fClef;
-			cleffOffset = STAFF_HEIGHT / 2 - 5; // F clef centered on F line (second line from top)
+			cleffOffset = STAFF_HEIGHT / 2 - 5 + yOffset; // F clef centered on F line (second line from top)
 			break;
 		case 'alto':
 			glyph = SMuFL.cClef;
-			cleffOffset = STAFF_HEIGHT / 2; // C clef centered on middle line
+			cleffOffset = STAFF_HEIGHT / 2 + yOffset; // C clef centered on middle line
 			break;
 		default:
 			glyph = SMuFL.gClef;
-			cleffOffset = STAFF_HEIGHT / 2 + 5;
+			cleffOffset = STAFF_HEIGHT / 2 + 5 + yOffset;
 	}
 
 	return (
@@ -42,7 +42,6 @@ export default function ClefRenderer({ x = 0, clefType = 'treble', yOffset = 0 }
 				textAnchor="start"
 				dominantBaseline="central"
 				fill="black"
-				transform="sclae(0.5)"
 			>
 				{glyph}
 			</text>

@@ -6,10 +6,10 @@ export const BASE_BEAT_UNIT_WIDTH = 40; // base width for a quarter note (0.25 d
 export const MIN_BEAT_VISUAL_WIDTH = 18; // minimum visual width per beat in pixels
 export const BEAT_COUNT_OVERHEAD = 0; // extra pixels added per beat to encourage wider dense measures
 
-// Horizontal layout tuning
 export const CLEF_WIDTH = 35;
 export const CLEF_LEFT_MARGIN = 12; // extra space before clef on first measure
 export const TIME_SIG_WIDTH = 30;
+export const TIME_SIG_HEIGHT = STAFF_LINE_SPACING * 2; // height for time signature rendering
 export const KEY_TO_TIME_MARGIN = 20; // space between key signature and time signature
 export const KEY_SIGNATURE_WIDTH_MOD = 20; // additional width per accidental in key signature
 export const MEASURE_START_OFFSET = 0; // offset from measure start to content
@@ -23,5 +23,5 @@ export const OPTICAL_EXTRA_NOTE_FACTOR = 0.1; // multiplier per extra note in ch
 
 // SMuFL glyph sizing (Bravura specific)
 export const CLEF_FONT_SIZE = 40; // Larger size for clefs
-export const TIME_SIG_FONT_SIZE = 50; // Size for time signature numbers
+export const TIME_SIG_FONT_SIZE = 38; // Size for time signature numbers
 export const KEY_SIG_FONT_SIZE = 40; // Size for key signature accidentals
