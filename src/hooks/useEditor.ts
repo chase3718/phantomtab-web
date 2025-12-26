@@ -3,6 +3,7 @@ import { EditorContext, type EditorContextType } from '../context/editorContext.
 
 export function useEditor(): EditorContextType {
 	const context = useContext(EditorContext);
+
 	if (!context) {
 		throw new Error('useEditor must be used within an EditorProvider');
 	}

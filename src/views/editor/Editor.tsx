@@ -27,7 +27,7 @@ function Editor() {
 		// Set key on first measure of all parts
 		for (const part of score.parts) {
 			if (part.measures.length > 0) {
-				part.measures[0].key = randomKey;
+				part.measures[0].setKey(randomKey);
 			}
 		}
 
@@ -121,6 +121,7 @@ function Editor() {
 		<>
 			{enableDevControls && (
 				<div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', zIndex: 10, position: 'absolute', bottom: 10 }}>
+					<button onClick={() => console.log(score)}>Log score</button>
 					<button onClick={() => addPart()}>Add part</button>
 					<button onClick={() => addMeasure()}>Add measure to all parts</button>
 					<button onClick={() => insertMeasure(1)}>Insert measure at position 2</button>

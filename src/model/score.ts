@@ -2,10 +2,22 @@ import { Id } from '../utils/id';
 import Part from './part';
 import Measure from './measure';
 
+type ScoreEvents = {
+	measuresChanged: { action: 'add' | 'insert' | 'remove'; index: number; count: number };
+	partsChanged: { action: 'add' | 'remove'; index: number; count: number };
+};
+
 export class Score {
 	public id: string;
 	public title: string;
 	public parts: Part[];
+	private listeners: {
+		measuresChanged: Set<(payload: ScoreEvents['measuresChanged']) => void>;
+		partsChanged: Set<(payload: ScoreEvents['partsChanged']) => void>;
+	} = {
+		measuresChanged: new Set(),
+		partsChanged: new Set(),
+	};
 
 	constructor(title: string = 'Untitled', parts: Part[] = [new Part()]) {
 		this.id = Id.next();
@@ -31,10 +43,23 @@ export class Score {
 		return this.parts.length > 0 ? this.parts[0].measures.length : 0;
 	}
 
+	public on<K extends keyof ScoreEvents>(event: K, handler: (payload: ScoreEvents[K]) => void): () => void {
+		const set = this.listeners[event] as Set<(payload: ScoreEvents[K]) => void>;
+		set.add(handler);
+		return () => set.delete(handler);
+	}
+
+	private emit<K extends keyof ScoreEvents>(event: K, payload: ScoreEvents[K]): void {
+		const set = this.listeners[event] as Set<(payload: ScoreEvents[K]) => void>;
+		set.forEach((handler) => handler(payload));
+	}
+
 	public addMeasure(): void {
+		const measureCount = this.getMeasureCount();
 		for (const part of this.parts) {
 			part.addMeasure();
 		}
+		this.emit('measuresChanged', { action: 'add', index: measureCount, count: 1 });
 	}
 
 	public insertMeasureAt(
@@ -55,6 +80,7 @@ export class Score {
 			measure.setNext(null);
 			part.insertMeasureAt(index, measure);
 		});
+		this.emit('measuresChanged', { action: 'insert', index, count: 1 });
 	}
 
 	public insertMeasuresAt(index: number, measures: Array<Measure> = [new Measure()]): void {
@@ -74,13 +100,16 @@ export class Score {
 		if (index < 0 || index >= measureCount) {
 			throw new Error('Index out of bounds');
 		}
-		return this.parts.map((part) => part.removeMeasureAt(index));
+		const removed = this.parts.map((part) => part.removeMeasureAt(index));
+		this.emit('measuresChanged', { action: 'remove', index, count: 1 });
+		return removed;
 	}
 
 	public addPart(part: Part = new Part()): void {
 		if (this.parts.length === 0) {
 			// No existing parts; use the provided part as-is
 			this.parts.push(part);
+			this.emit('partsChanged', { action: 'add', index: 0, count: 1 });
 			return;
 		}
 
@@ -90,19 +119,21 @@ export class Score {
 		let prev: Measure | null = null;
 		for (const tmpl of templateMeasures) {
 			// Chain previous/next links so measure.previous is correctly set
-			const m = new Measure(tmpl.key, tmpl.timeSignature, undefined, prev, null);
+			const m: Measure = new Measure(tmpl.key, tmpl.timeSignature, undefined, prev, null);
 			clonedMeasures.push(m);
 			prev = m;
 		}
 
 		const newPart = new Part(clonedMeasures, part.instrument, part.name);
 		this.parts.push(newPart);
+		this.emit('partsChanged', { action: 'add', index: this.parts.length - 1, count: 1 });
 	}
 
 	public removePart(partId: string): void {
 		const index = this.parts.findIndex((p) => p.id === partId);
 		if (index >= 0) {
 			this.parts.splice(index, 1);
+			this.emit('partsChanged', { action: 'remove', index, count: 1 });
 		}
 	}
 

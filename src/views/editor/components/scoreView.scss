@@ -28,7 +28,7 @@
         position: relative;
         display: grid;
         grid-auto-flow: row;
-        gap: 0;
+        gap: 50px;
         width: max-content;
 
         .ScoreView__PartRenderer {
@@ -36,38 +36,12 @@
             grid-auto-flow: column;
             gap: 0;
             align-items: stretch;
-            border: 1px solid #ddd;
-            border-bottom: none;
-
-            &:last-child {
-                border-bottom: 1px solid #ddd;
-            }
 
             .Score__PartView__measure {
                 display: grid;
                 align-items: center;
                 justify-items: center;
                 padding: 0;
-                border-right: 1px solid #ddd;
-                min-width: 120px;
-
-                &:last-child {
-                    border-right: none;
-                }
-
-                .Score__PartView__measure__number {
-                    display: none;
-                }
-
-                // .Score__PartView__measure__staff-lines {
-                //     width: 100%;
-                //     height: auto;
-                //     display: block;
-                // }
-
-                p {
-                    display: none;
-                }
             }
         }
     }

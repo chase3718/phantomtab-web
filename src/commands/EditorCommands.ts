@@ -15,12 +15,12 @@ export class SelectComponentCommand implements Command {
 	}
 
 	execute(): void {
-		this.previousComponentId = this.editor.getSelectedId();
-		this.editor.setSelectedId(this.newComponentId);
+		this.previousComponentId = this.editor.selectedId;
+		this.editor.selectedId = this.newComponentId;
 	}
 
 	undo(): void {
-		this.editor.setSelectedId(this.previousComponentId);
+		this.editor.selectedId = this.previousComponentId;
 	}
 
 	getDescription(): string {

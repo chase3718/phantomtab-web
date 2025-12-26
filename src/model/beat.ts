@@ -1,10 +1,10 @@
-import type { Articulation, Note } from '../types';
+import type { Articulation, Clef, Key, Note } from '../types';
 import { Id } from '../utils/id';
 
 export default class Beat {
 	public id: string;
 	public duration: number; // Duration in whole notes
-	public notes: Note[];
+	public note: Note | null;
 	public placeInMeasure: number;
 	public articulations: Articulation[];
 	public next: Beat | null = null;
@@ -12,60 +12,46 @@ export default class Beat {
 
 	constructor(
 		duration: number = 0.25,
-		notes?: Note[],
-		articulations?: Articulation[],
+		note: Note | null = null,
+		articulations: Articulation[] = [],
 		previous: Beat | null = null,
 		next: Beat | null = null
 	) {
 		this.id = Id.next();
 		this.duration = duration;
-
-		// Default to a random note between C4 and C6 if no notes provided
-		if (!notes || notes.length === 0) {
-			const noteType = this.getNoteTypeFromDuration(duration);
-			const randomNote = this.getRandomNote(noteType);
-			this.notes = [randomNote];
-		} else {
-			this.notes = notes;
-		}
-
-		this.articulations = articulations || [];
+		this.note = note;
+		this.articulations = articulations;
 		this.previous = previous;
 		this.next = next;
 
-		// Calculate place in measure based on previous beats
+		// Set up bidirectional links
 		if (previous) {
+			previous.next = this;
 			this.placeInMeasure = previous.placeInMeasure + previous.duration;
 		} else {
 			this.placeInMeasure = 0;
 		}
+
+		if (next) {
+			next.previous = this;
+		}
 	}
 
-	private getRandomNote(noteType: Note['type']): Note {
-		const steps: Array<'C' | 'D' | 'E' | 'F' | 'G' | 'A' | 'B'> = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
-		const randomStep = steps[Math.floor(Math.random() * steps.length)];
-		const randomOctave = 4 + Math.floor(Math.random() * 2); // 4 or 5
+	/**
+	 * @param clef
+	 * @returns number | null
+	 * Returns the number of staff positions from the center line (or center space if even lines) of the clef.
+	 */
 
-		return {
-			pitch: { step: randomStep, octave: randomOctave, alter: 0 },
-			type: noteType,
-			dots: 0,
-		};
-	}
+	getNotePosisition(clef: Clef = 'treble'): number | null {
+		if (!this.note) {
+			return null;
+		}
 
-	private getNoteTypeFromDuration(
-		duration: number
-	): 'whole' | 'half' | 'quarter' | 'eighth' | 'sixteenth' | 'thirty-second' {
-		if (duration >= 1) return 'whole';
-		if (duration >= 0.5) return 'half';
-		if (duration >= 0.25) return 'quarter';
-		if (duration >= 0.125) return 'eighth';
-		if (duration >= 0.0625) return 'sixteenth';
-		return 'thirty-second';
-	}
-
-	getWidth(unitWidth: number = 250): number {
-		return durationToWidthMap[this.duration] * unitWidth;
+		const noteOffset = noteOffsets[this.note.pitch.step];
+		const octaveOffset = (this.note.pitch.octave - 4) * 7; // Each octave has 7 staff positions
+		const clefOffset = clefOffsets[clef];
+		return noteOffset + octaveOffset + clefOffset;
 	}
 
 	setDuration(newDuration: number): void {
@@ -73,11 +59,20 @@ export default class Beat {
 	}
 }
 
-const durationToWidthMap: { [key: number]: number } = {
-	1: 1, // whole note
-	0.5: 0.5, // half note
-	0.25: 0.25, // quarter note
-	0.125: 0.125, // eighth note
-	0.0625: 0.1, // sixteenth note
-	0.03125: 0.1, // thirty-second note
+const noteOffsets = {
+	C: 0,
+	D: 1,
+	E: 2,
+	F: 3,
+	G: 4,
+	A: 5,
+	B: 6,
+};
+
+const clefOffsets: { [key in Clef]: number } = {
+	treble: 6,
+	bass: -6,
+	alto: 0,
+	tenor: -2,
+	CClef: 0,
 };

@@ -3,45 +3,26 @@ import { SMuFL } from './smufl';
 
 interface BarlinesProps {
 	measureWidth: number;
-	isFirstMeasure: boolean;
 	isLastMeasure: boolean;
-	startXOffset?: number;
+	yOffset: number;
 }
 
-export default function Barlines({ measureWidth, isFirstMeasure, isLastMeasure, startXOffset = 0 }: BarlinesProps) {
+export default function Barlines({ measureWidth, isLastMeasure, yOffset }: BarlinesProps) {
 	return (
 		<>
 			{/* Start barline */}
-			{isFirstMeasure ? (
-				<></>
-			) : (
-				<text
-					x={startXOffset}
-					y={STAFF_HEIGHT}
-					fontFamily="Bravura"
-					fontSize="40"
-					textAnchor="start"
-					dominantBaseline="central"
-					fill="black"
-				>
-					{SMuFL.barlineSingle}
-				</text>
-			)}
 
-			{/* End barline */}
-			{isLastMeasure && (
-				<text
-					x={measureWidth - 8}
-					y={STAFF_HEIGHT}
-					fontFamily="Bravura"
-					fontSize="40"
-					textAnchor="start"
-					dominantBaseline="central"
-					fill="black"
-				>
-					{SMuFL.barlineSingle}
-				</text>
-			)}
+			<text
+				x={measureWidth}
+				y={STAFF_HEIGHT - 9 + yOffset}
+				fontFamily="Bravura"
+				fontSize="40"
+				textAnchor="end"
+				dominantBaseline="central"
+				fill="black"
+			>
+				{isLastMeasure ? SMuFL.barlineDouble : SMuFL.barlineSingle}
+			</text>
 		</>
 	);
 }

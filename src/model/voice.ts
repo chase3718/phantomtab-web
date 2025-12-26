@@ -14,6 +14,7 @@ export default class Voice {
 			// Default to a single beat with quarter note duration
 			this.beats = [new Beat(0.25)];
 		}
+		this.reflowBeats();
 	}
 
 	/**
@@ -32,6 +33,7 @@ export default class Voice {
 
 	addBeat(beat: Beat = new Beat(0.25)): void {
 		this.beats.push(beat);
+		this.reflowBeats();
 	}
 
 	insertBeatAt(index: number, beat: Beat = new Beat(0.25)): void {
@@ -39,27 +41,41 @@ export default class Voice {
 			throw new Error('Index out of bounds');
 		}
 		this.beats.splice(index, 0, beat);
+		this.reflowBeats();
 	}
 
 	removeBeatAt(index: number): Beat | undefined {
 		if (index < 0 || index >= this.beats.length) {
 			return undefined;
 		}
-		return this.beats.splice(index, 1)[0];
+		const [removed] = this.beats.splice(index, 1);
+		this.reflowBeats();
+		return removed;
 	}
 
 	removeLastBeat(): Beat | undefined {
 		if (this.beats.length === 0) {
 			return undefined;
 		}
-		return this.beats.pop();
+		const removed = this.beats.pop();
+		this.reflowBeats();
+		return removed;
 	}
 
 	getBeatIndex(beatId: string): number {
 		return this.beats.findIndex((beat) => beat.id === beatId);
 	}
 
-	getWidth(unitWidth: number = 250): number {
-		return this.beats.reduce((sum, beat) => sum + beat.getWidth(unitWidth), 0);
+	private reflowBeats(): void {
+		let position = 0;
+		for (let i = 0; i < this.beats.length; i++) {
+			const current = this.beats[i];
+			const prev = i > 0 ? this.beats[i - 1] : null;
+			const next = i < this.beats.length - 1 ? this.beats[i + 1] : null;
+			current.previous = prev;
+			current.next = next;
+			current.placeInMeasure = position;
+			position += current.duration;
+		}
 	}
 }

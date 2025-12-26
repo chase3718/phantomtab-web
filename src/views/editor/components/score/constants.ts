@@ -1,6 +1,6 @@
 // Staff rendering constants
 export const STAFF_LINE_SPACING = 10; // pixels between staff lines
-export const STAFF_HEIGHT = STAFF_LINE_SPACING * 4; // 5 lines, 4 spaces
+export const STAFF_HEIGHT = STAFF_LINE_SPACING * 5; // 5 lines, 4 spaces
 export const BEAT_PADDING = 0; // padding between beats in pixels
 export const BASE_BEAT_UNIT_WIDTH = 40; // base width for a quarter note (0.25 duration)
 export const MIN_BEAT_VISUAL_WIDTH = 18; // minimum visual width per beat in pixels
@@ -22,6 +22,6 @@ export const OPTICAL_LEDGER_PADDING = 6;
 export const OPTICAL_EXTRA_NOTE_FACTOR = 0.1; // multiplier per extra note in chord
 
 // SMuFL glyph sizing (Bravura specific)
-export const CLEF_FONT_SIZE = 80; // Larger size for clefs
+export const CLEF_FONT_SIZE = 40; // Larger size for clefs
 export const TIME_SIG_FONT_SIZE = 50; // Size for time signature numbers
 export const KEY_SIG_FONT_SIZE = 40; // Size for key signature accidentals
