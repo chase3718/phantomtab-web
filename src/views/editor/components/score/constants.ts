@@ -13,7 +13,7 @@ export const TIME_SIG_HEIGHT = STAFF_LINE_SPACING * 2; // height for time signat
 export const KEY_TO_TIME_MARGIN = 20; // space between key signature and time signature
 export const KEY_SIGNATURE_WIDTH_MOD = 20; // additional width per accidental in key signature
 export const MEASURE_START_OFFSET = 0; // offset from measure start to content
-export const BEAT_CONTENT_OFFSET = 0; // additional offset for beat content rendering
+export const BEAT_CONTENT_OFFSET = 10; // additional offset for beat content rendering
 export const CONTENT_END_PADDING = 0; // padding after beat content
 
 // Optical spacing helpers

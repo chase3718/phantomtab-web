@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { SMuFL } from './smufl';
 import type Measure from '../../../../model/measure';
-import { STAFF_LINE_SPACING } from './constants';
+import { BEAT_CONTENT_OFFSET, STAFF_LINE_SPACING } from './constants';
 
 function durationToGlyph(duration: number): string {
 	return DurationToGlyph[duration] || SMuFL.noteheadBlack;
@@ -22,7 +22,7 @@ interface BeatsRendererProps {
 
 export function BeatsRenderer({ measure, yOffset }: BeatsRendererProps) {
 	const beats = useMemo(() => {
-		let x = 0;
+		let x = BEAT_CONTENT_OFFSET;
 		const elements: React.ReactElement[] = [];
 
 		measure.measureLayout.forEach((beatsAtPosition) => {
@@ -64,7 +64,7 @@ export function BeatsRenderer({ measure, yOffset }: BeatsRendererProps) {
 					// Add stems for notes that require them
 					if (beat.duration < 1) {
 						const stemHeight = 35;
-						const stemDirection = notePosition >= 0 ? 1 : -1; // Up if on or above middle line
+						const stemDirection = notePosition >= 0 ? -1 : 1; // Up if on or above middle line
 						const stemX = voiceOffsetX + 5.1 * stemDirection; // Stem on right side of notehead
 						const stemY1 = noteY - 1 * stemDirection; // Start just above/below notehead
 						const stemY2 = noteY - stemDirection * stemHeight;
